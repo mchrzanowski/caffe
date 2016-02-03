@@ -34,7 +34,7 @@ void DoubleContrastiveLossLayer<Dtype>::Forward_gpu(
   Dtype loss(0.0);
   for (int i = 0; i < bottom[0]->num(); ++i) {
     if (static_cast<int>(bottom[2]->cpu_data()[i])) {  // similar pairs
-      Dtype dist = std::max(margin_same - sqrt(dist_sq_.cpu_data()[i]),
+      Dtype dist = std::max(sqrt(dist_sq_.cpu_data()[i] - margin_same),
                               Dtype(0.0));
       loss += dist*dist;
     } else {  // dissimilar pairs
@@ -59,8 +59,8 @@ __global__ void CLLBackward(const int count, const int channels,
       Dtype mdist(0.0);
       Dtype beta(0.0);
       Dtype dist = sqrt(dist_sq[n]);
-      mdist = (margin_same - dist);
-      beta = -alpha * mdist / (dist + Dtype(1e-4)) * diff[i];
+      mdist = (dist - margin_same);
+      beta = alpha * mdist / (dist + Dtype(1e-4)) * diff[i];
       if (mdist > 0.0) {
         bottom_diff[i] = beta;
       } else {

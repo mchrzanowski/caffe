@@ -45,12 +45,12 @@ void DoubleContrastiveLossLayer<Dtype>::Forward_cpu(
     dist_sq_.mutable_cpu_data()[i] = caffe_cpu_dot(channels,
         diff_.cpu_data() + (i*channels), diff_.cpu_data() + (i*channels));
     if (static_cast<int>(bottom[2]->cpu_data()[i])) {  // similar pairs
-      Dtype dist = std::max<Dtype>(margin_same - sqrt(dist_sq_.cpu_data()[i]),
-        Dtype(0.0));
+      Dtype dist = std::max<Dtype>(sqrt(dist_sq_.cpu_data()[i]) - margin_same,
+                                   Dtype(0.0));
       loss += dist*dist;
     } else {  // dissimilar pairs
       Dtype dist = std::max<Dtype>(margin_diff - sqrt(dist_sq_.cpu_data()[i]),
-        Dtype(0.0));
+                                   Dtype(0.0));
       loss += dist*dist;
     }
   }
@@ -76,8 +76,8 @@ void DoubleContrastiveLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>&
           Dtype mdist(0.0);
           Dtype beta(0.0);
           Dtype dist = sqrt(dist_sq_.cpu_data()[j]);
-          mdist = margin_same - dist;
-          beta = -alpha * mdist / (dist + Dtype(1e-4));
+          mdist = dist - margin_same;
+          beta = alpha * mdist / (dist + Dtype(1e-4));
           if (mdist > Dtype(0.0)) {
             caffe_cpu_axpby(
                 channels,
