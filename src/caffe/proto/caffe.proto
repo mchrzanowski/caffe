@@ -394,7 +394,12 @@ message LayerParameter {
   optional ThresholdParameter threshold_param = 128;
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
+
   optional DoubleContrastiveLossParameter double_contrastive_loss_param = 200;
+  optional SpatialTransformerParameter st_param = 201;
+  optional STLossParameter st_loss_param = 202;
+  optional PowerFileParameter power_file_param = 203;
+  optional LocLossParameter loc_loss_param = 204;
 }
 
 // Message that stores parameters used to apply transformation
@@ -796,6 +801,11 @@ message InnerProductParameter {
   optional int32 axis = 5 [default = 1];
 }
 
+
+message LocLossParameter {
+  required double threshold = 1;
+}
+
 // Message that stores parameters used by LogLayer
 message LogParameter {
   // LogLayer computes outputs y = log_base(shift + scale * x), for base > 0.
@@ -871,6 +881,11 @@ message PoolingParameter {
   // kernel_h = bottom->height and kernel_w = bottom->width
   optional bool global_pooling = 12 [default = false];
 }
+
+message PowerFileParameter {
+  optional string shift_file = 1;
+}
+
 
 message PowerParameter {
   // PowerLayer computes outputs y = (shift + scale * x) ^ power.
@@ -1039,6 +1054,29 @@ message ScaleParameter {
   optional FillerParameter bias_filler = 5;
 }
 
+message SpatialTransformerParameter {
+
+  // How to use the parameter passed by localisation network
+  optional string transform_type = 1 [default = "affine"];
+  // What is the sampling technique
+  optional string sampler_type = 2 [default = "bilinear"];
+
+  // If not set,stay same with the input dimension H and W
+  optional int32 output_H = 3;
+  optional int32 output_W = 4;
+
+  // If false, only compute dTheta, DO NOT compute dU
+  optional bool to_compute_dU = 5 [default = true];
+
+  // The default value for some parameters
+  optional double theta_1_1 = 6;
+  optional double theta_1_2 = 7;
+  optional double theta_1_3 = 8;
+  optional double theta_2_1 = 9;
+  optional double theta_2_2 = 10;
+  optional double theta_2_3 = 11;
+}
+
 message SigmoidParameter {
   enum Engine {
     DEFAULT = 0;
@@ -1072,6 +1110,12 @@ message SoftmaxParameter {
   // from the end (e.g., -1 for the last axis).
   // Any other axes will be evaluated as independent softmaxes.
   optional int32 axis = 2 [default = 1];
+}
+
+message STLossParameter {
+  // Indicate the resolution of the output images after ST transformation
+  required int32 output_H = 1;
+  required int32 output_W = 2;
 }
 
 message TanHParameter {
